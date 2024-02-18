@@ -1,59 +1,13 @@
 from datetime import datetime
-import mysql.connector
-import sys
 
-def get_connection():
-        try:
-            conn = mysql.connector.connect(
-            host="localhost",
-            user="iniatserver",
-            password="iniat",
-            database="smability"
-            )
-            return conn
-        except mysql.connector.Error as error:
-            print("MySQL Error at get_LocationData: ", error)
-
-    
-
-class LocataionData:
+class LocationData:
     """Ubicación de cada sensor, no puede ser cambiada"""
     def __init__(self, idLocation: int, place: str, latitude: float, longitud: float):
         self.idLocation = idLocation
         self.place = place
-        self.Latitude = latitude
+        self.latitude = latitude
         self.longitud = longitud
     
-    def get_by_id(self, value: int):
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            query = "SELECT idLocation, Place, Latitude, Longitude FROM LocationData WHERE idLocation = {}".format(value)
-            cursor.execute(query)
-            result = cursor.fetchall()
-
-            if __debug__:
-                print("LocationData retreived")
-        except mysql.connector.Error as error:
-            print("MySQL Error at get_LocationData: ", error)
-
-        conn.close()
-    
-    def post(self):
-        conn = get_connection()
-        try:
-            cursor = conn.cursor()
-            query = "SELECT idLocation, Place, Latitude, Longitude FROM LocationData WHERE idLocation = {}".format(value)
-            cursor.execute(query)
-            conn.commit()
-            if __debug__:
-                print("LocationData retreived")
-        except mysql.connector.Error as error:
-            print("MySQL Error at get_LocationData: ", error)
-
-        conn.close()
-
-
 class UserData:
     """Información de usuarrio"""
     def __init__(self, idUser: int, username: str):
