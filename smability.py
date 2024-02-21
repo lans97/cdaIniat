@@ -1,6 +1,5 @@
 # Wrapper para API de Smability
 from datetime import datetime, timedelta
-import sensors
 import requests
 import model
 
@@ -16,7 +15,6 @@ def get_data(token: str, sensors: tuple, date_0: datetime, date_f: datetime):
         query = {'dtstart': start, 'dtend': end, 'token': token, 'idsensor': str(n)}
         response = requests.get(url, params=query)
         data = response.json()
-
-    print(data)
+        print(data)
  
     return 0

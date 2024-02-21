@@ -1,12 +1,14 @@
 import mysql.connector
 import model
+import secretos
 
 def get_connection():
         try:
             conn = mysql.connector.connect(
-            host="localhost", user="iniatserver",
-            password="iniat",
-            database="smability"
+            host=secretos.SQLHOST,
+            user=secretos.SQLUSER,
+            password=secretos.SQLPASSWORD,
+            database=secretos.SQLDATABASE
             )
             return conn
         except mysql.connector.Error as error:
