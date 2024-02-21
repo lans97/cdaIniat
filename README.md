@@ -7,3 +7,7 @@ Pequeña parte del proyecto de calidad del aire para el INIAT
 - Investigar API para cambiar a actualización por eventos
 - Integrar sitios con base de datos*
 - Investigar API de telegram para hacer un bot
+
+## Notas
+
+Los tokens de cada sensor se guardan localmente en el archivo sensor.py, no se suben al repositorio por seguridad.
