@@ -2,6 +2,7 @@ import mysql.connector
 import model
 import secretos
 
+"""Devuelve una conexión a mySql/MariaDB"""
 def get_connection():
         try:
             conn = mysql.connector.connect(
@@ -13,214 +14,141 @@ def get_connection():
             return conn
         except mysql.connector.Error as error:
             print("MySQL Error at get_connection: ", error)
+            exit(-1)
 
-def post_LocationData(item: model.LocationData):
+"""Agrega un Location_Data a la bd y devuelve el ID"""
+def post_Location_Data(item: model.Location_Data) -> int:
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "INSERT INTO LocationData (Place, Latitude, Longitude) VALUES ('{}', {}, {})".format(item.place, item.latitude, item.longitude)
-        cursor.execute(query)
+        query = "INSERT INTO Location_Data (Place, Latitude, Longitude) VALUES (%s, %s, %s)"
+        cursor.execute(query, (item.place, item.latitude, item.longitud))
         conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
+        insert_id = cursor._last_insert_id
+        conn.close()
+        return insert_id
     except mysql.connector.Error as error:
-        print("MySQL Error at post_LocationData: ", error)
-    conn.close()
+        print("MySQL Error at post_Location_Data: ", error)
 
-def get_LocationData_by_id(value: int):
+def get_Location_Data_by_id(value: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "SELECT * FROM LocationData WHERE idLocation = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
-        
-        return model.LocationData(result[1], result[2], result[3], result[0])
+        query = "SELECT * FROM LocationData WHERE ID_Location_Data = %s"
+        cursor.execute(query, (value,))
+        result = cursor.fetchone()
+        conn.close()
+        return model.Location_Data(id_Location=result[0], place=result[1], latitude=result[2], longitud=result[3])
 
-        if __debug__:
-            print("LocationData retreived from database.")
     except mysql.connector.Error as error:
-        print("MySQL Error at get_LocationData_by_id : ", error)
+        print("MySQL Error at get_Location_Data_by_id : ", error)
+        exit(-1)
 
-    conn.close()
-
-def post_UserData(item: model.UserData):
+def post_Device(item: model.Device):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "INSERT INTO userData (UserName) VALUES ('{}')".format(item.username)
-        cursor.execute(query)
+        query = "INSERT INTO Device (Nombre, Token, ID_Location_Data) VALUES (%s, %s, %s)"
+        cursor.execute(query, [item.nombre, item.token, item.location.id_Location])
         conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
+        insert_id = cursor._last_insert_id
+        conn.close()
+        return insert_id
     except mysql.connector.Error as error:
-        print("MySQL Error at post_UserData: ", error)
-    conn.close()
-
-def get_UserData_by_id(value: int):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        query = "SELECT * FROM userData WHERE idUser = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
+        print("MySQL Error at post_Device: ", error)
+        exit(-1)
         
-        return model.UserData(result[1], result[0])
-
-        if __debug__:
-            print("UserData retreived from database.")
-    except mysql.connector.Error as error:
-        print("MySQL Error at get_UserData_by_id : ", error)
-
-    conn.close()
-
-def post_Report(item: model.Report):
+def get_Device_by_id(value: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "INSERT INTO Report (RerportName, StartDate, EndDate, idUser) VALUES ('{}', '{}', '{}', {})".format(item.reportName, item.startDate, item.endDate, item.idUser)
-        cursor.execute(query)
-        conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
+        query = "SELECT * FROM Device WHERE id_Device = %s"
+        cursor.execute(query, (value,))
+        result = cursor.fetchone()
+        conn.close()
+        return model.Device(id_Device=result[0], nombre=result[1], token=result[2], location=get_LocationData_by_id(result[3]))
     except mysql.connector.Error as error:
-        print("MySQL Error at post_Report: ", error)
-    conn.close()
-
-def get_Report_by_id(value: int):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        query = "SELECT * FROM Report WHERE idReport = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
-        
-        return model.Report(result[1], result[2], result[3], result[4], result[0])
-
-        if __debug__:
-            print("UserData retreived from database.")
-    except mysql.connector.Error as error:
-        print("MySQL Error at get_Report_by_id : ", error)
-
-    conn.close()
+        print("MySQL Error at get_Device_by_id: ", error)
+        exit(-1)
 
 def post_Sensor(item: model.Sensor):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "INSERT INTO Sensor (Alias, Token, DeviceMode, idLocation) VALUES ('{}', {}, {}, {})".format(item.alias, item.token, item.deviceMode, item.idLocation)
-        cursor.execute(query)
+        query = "INSERT INTO Sensor (ID_Sensor, Descript, ID_Device) VALUES (%s, %s, %s)"
+        cursor.execute(query, (item.sensor, item.descript, item.Device.id_Device))
         conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
+        insert_id = cursor._last_insert_id
+        conn.close()
+        return insert_id
     except mysql.connector.Error as error:
         print("MySQL Error at post_Sensor: ", error)
-    conn.close()
 
 def get_Sensor_by_id(value: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "SELECT * FROM Sensor WHERE idSensor = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
-        
-        return model.Report(result[1], result[2], result[3], result[4], result[0])
+        query = "SELECT * FROM Sensor WHERE idSensor = %s"
+        cursor.execute(query, (value,))
+        result = cursor.fetchone()
+        conn.close()
+        return model.Sensor(id_Sensor=result[0], descript=result[1], device=get_Device_by_id(result[2]))
 
-        if __debug__:
-            print("UserData retreived from database.")
     except mysql.connector.Error as error:
         print("MySQL Error at get_Sensor_by_id : ", error)
-
-    conn.close()
-
-def post_Alert(item: model.Alert):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        query = "INSERT INTO Alert (TimeData, information, idSensor) VALUES ('{}', '{}', {})".format(item.timeData, item.information, item.idSensor)
-        cursor.execute(query)
-        conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
-    except mysql.connector.Error as error:
-        print("MySQL Error at post_Alert: ", error)
-    conn.close()
-
-def get_Alert_by_id(value: int):
-    conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        query = "SELECT * FROM Alert WHERE idAlert = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
-        
-        return model.Alert(result[1], result[2], result[3], result[0])
-
-        if __debug__:
-            print("UserData retreived from database.")
-    except mysql.connector.Error as error:
-        print("MySQL Error at get_Alert_by_id : ", error)
-
-    conn.close()
+        exit(-1)
 
 def post_Measure(item: model.Measure):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "INSERT INTO Measure (idSmability, kindMeasure, units) VALUES ({}, '{}', '{}')".format(item.idSmability, item.kindMeasure, item.units)
-        cursor.execute(query)
+        query = "INSERT INTO Measure (ID_Smability, Kind_Measure, Units) VALUES (%s, %s, %s)"
+        cursor.execute(query, (item.id_Smability, item.kind_Measure, item.units))
         conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
+        insert_id = cursor._last_insert_id
+        conn.close()
+        return insert_id
     except mysql.connector.Error as error:
         print("MySQL Error at post_Measure: ", error)
-    conn.close()
+        exit(-1)
 
 def get_Measure_by_id(value: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "SELECT * FROM Measure WHERE idMeasure = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
-        
-        return model.Measure(result[1], result[2], result[3], result[0])
-
-        if __debug__:
-            print("UserData retreived from database.")
+        query = "SELECT * FROM Measure WHERE idMeasure = %s"
+        cursor.execute(query, (value,))
+        result = cursor.fetchone()
+        conn.close()       
+        return model.Measure(id_Measure=result[0], id_Smability=result[1], kind_Measure=result[2], units=result[3])
     except mysql.connector.Error as error:
-        print("MySQL Error at get_Report_by_id : ", error)
-
-    conn.close()
+        print("MySQL Error at get_Measure_by_id : ", error)
+        exit(-1)
 
 def post_Sample(item: model.Sample):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "INSERT INTO Sample (SampleNumber, TimeData, SampleData, idReport, idSensor, idMeasure) VALUES ({}, '{}', {}, {}, {}, {})".format(
-            item.sampleNumber, item.timeData, item.sampleData, item.idReport, item.idSensor, item.idMeasure)
-        cursor.execute(query)
+        query = "INSERT INTO Sample (Time_Data, Sample_Data, ID_Sensor, ID_Measure) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (item.time_Data.strftime('%Y-%m-%d %H:%M:%S'), item.sample_Data, item.sensor.id_Sensor, item.measure.id_Measure))
         conn.commit()
-        if __debug__:
-            print(cursor.rowcount, "record inserted.")
+        insert_id = cursor._last_insert_id
+        conn.close()
+        return insert_id
     except mysql.connector.Error as error:
         print("MySQL Error at post_Sample: ", error)
-    conn.close()
+        exit(-1)
 
 def get_Sample_by_id(value: int):
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        query = "SELECT * FROM Sample WHERE idSample = {}".format(value)
-        cursor.execute(query)
-        result = cursor.fetchall()[0]
-        
-        return model.Sample(result[1], result[2], result[3], result[4], result[5], result[6], result[0])
+        query = "SELECT * FROM Sample WHERE ID_Sample = %s"
+        cursor.execute(query, (value,))
+        result = cursor.fetchone()
+        conn.close()
+        return model.Sample(id_Sample=result[0], time_Data=result[1], sample_Data=result[2], sensor=get_Sensor_by_id(result[3]), measure=get_Measure_by_id(result[4]))
 
-        if __debug__:
-            print("UserData retreived from database.")
     except mysql.connector.Error as error:
         print("MySQL Error at get_Sample_by_id : ", error)
-
-    conn.close()
+        exit(-1)
