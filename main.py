@@ -17,21 +17,26 @@ def update():
         devices = session.query(Device).filter(Device.Status != "error")
 
         for device in devices:
+            if device.Status == "null_info" or device.Status == "error":
+                next
             token = device.Token
-            sensor_nos = [sensor.Sensor_No for sensor in device.sensors]
             sensors = [sensor for sensor in device.sensors]
+            sensor_nos = tuple([sensor.Sensor_No for sensor in sensors])
             
             current_time = datetime.now()
             five_minutes_ago = current_time - timedelta(minutes=5)
             measures_data = smability.get_data(token, sensor_nos, five_minutes_ago, current_time)
-            
 
             for data in measures_data:
                 ts = data[0].get('TimeStamp').split("T")
                 ts = ts[0] + " " + ts[1]
-                sensor_no = int(sensor_nos[measures_data.index(data)])
-                sensor_id = sensors.filter(lambda s: True if s.Sensor_No == sensor_no else False)[0].ID_Sensor
-                sample = Sample(Time_Data=ts, Sample_Data=data[0].get("Data"), Units="", ID_Sensor=sensor_id)
+                index = measures_data.index(data)
+                sensor_no = sensor_nos[index]
+                curr_sensor = filter(lambda sensor: sensor.Sensor_No == sensor_no, sensors)
+                data_value = data[0].get("Data")
+                if data_value is None:
+                    next
+                sample = Sample(Time_Data=ts, Sample_Data=data_value, Units="", ID_Sensor=curr_sensor.ID_Sensor)
                 session.add(sample)
             session.commit()
     except Exception as e:
