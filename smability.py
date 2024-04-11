@@ -14,6 +14,7 @@ def get_data(token: str, sensors: tuple, date_0: datetime, date_f: datetime):
     url = 'http://smability.sidtecmx.com/smabilityapi/GetData?'
     for n in sensors:
         query = {'dtstart': start, 'dtend': end, 'token': token, 'idsensor': str(n)}
+        print(f"Getting data from {token}: {n}.")
         response = requests.get(url, params=query)
         data = response.json()
         output.append(data)

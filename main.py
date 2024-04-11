@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 import time
 from secretos import sqlcred
@@ -7,7 +8,15 @@ from orm import Device, Sensor, Sample
 import smability
 import setup
 
+logging.basicConfig(filename="sqlalchemy.log", level=logging.INFO)
+logger = logging.getLogger('sqlalchemy.engine')
+logger.setLevel(logging.INFO)
+handler = logging.FileHandler('sqlalchemy.log')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 engine = create_engine(f'mysql+mysqlconnector://{sqlcred.get("SQL_USER")}:{sqlcred.get("SQL_PASSWORD")}@{sqlcred.get("SQL_HOST")}/{sqlcred.get("SQL_DATABASE")}', echo=True)
+engine.logger = logger
 Session = sessionmaker(bind=engine)
 
 def update():
@@ -43,19 +52,24 @@ def update():
                 sample = Sample(Time_Data=ts, Sample_Data=data_value, Units="", ID_Sensor=curr_sensor.ID_Sensor)
                 session.add(sample)
                 session.commit()
+                print(f"Sensor [{curr_sensor.Descript}] from Device [{device.Nombre}] updated.")
             device.Status = "ok"
             session.commit()
+            time.sleep(20)
     except Exception as e:
         print("Error:", e)
         exit(-1)
     finally:
         session.close()
-
+    
+    print("Succesfully updated. Waiting for next update...")
 
 def main():
     while(True):
+        last_update = datetime.now()
         update()
-        time.sleep(300)
+        wait_time = datetime.now() - last_update
+        time.sleep(301 - wait_time.seconds)
     return 0
 
 if __name__ == "__main__":

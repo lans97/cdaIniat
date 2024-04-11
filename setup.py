@@ -1,3 +1,4 @@
+import logging
 from secretos import sqlcred, sensores
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import sessionmaker
@@ -9,7 +10,9 @@ import smability
 def main():
     Base = declarative_base()
 
+    logging.basicConfig(filename="sqlalchemy.log", level=logging.INFO)
     engine = create_engine(f'mysql+mysqlconnector://{sqlcred.get("SQL_USER")}:{sqlcred.get("SQL_PASSWORD")}@{sqlcred.get("SQL_HOST")}/{sqlcred.get("SQL_DATABASE")}', echo=True)
+    engine.logger = logging.getLogger('sqlalchemy')
     metadata = MetaData()
     metadata.reflect(bind=engine)
 
