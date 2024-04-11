@@ -8,8 +8,9 @@ sensor_ids = tuple([el['idSensor'] for el in devSensores])
 current_time = datetime.now()
 five_minutes_ago = current_time - timedelta(minutes=5)
 
-measures_data = smability.get_data(secretos.sensores.get('IBERO2'), sensor_ids, five_minutes_ago, current_time)
+measures_data = smability.get_data(secretos.sensores.get('IBERO2'), (1, 2, 3), five_minutes_ago, current_time)
 
 for measure in measures_data:
-    print(measure)
+    print(measure.get("TimeStamp"))
+    print(measure.get("Data"))
     print("")
