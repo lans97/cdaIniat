@@ -33,7 +33,7 @@ def main():
                         session.commit()
                         print(f"Sensor {sensor.Descript} added to device {device.Nombre}")
             else:
-                device.Status = "null_info"
+                device.Status = "error"
                 session.commit()
     session.close()
 
